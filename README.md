@@ -10,17 +10,81 @@ For those unfamiliar with the single-cell annotation process, for each cluster t
 As cells can have different levels of classification (e.g. Adipocytes, white/brown/beige adipocyte, pre-adipocyte, etc.) heirarchical annotation lends itself to the process of understanding how individual cells change and interact with a larger group. While heirarchical annotatin may initially seem complex, it is little more than annotating the dataset at different resolutions and identifying which clusters at a lower resolution give way to more specific and refined clusters at higher resolution. This part of my package would simply utilize the trained model to predict the most likely markers at each relevant resolution. I would also like to implement some method to help identify which resolutions are key resolutions, but heirarchical annotion is absouletly possible without this step.
 #### Identification of Unknown/New cell types and pathways
 As alluded to in the previous description, I aim to train a model which can aid in identifying unknown or new cell types and pathways. I propose this be done by utilizing the confidence of each prediction. When predicting the cell type of a cluster from known markers, the model would report how closely a cluster fits to known cell-type markers (how many known markers are present, their rank of expression in top N markers, proportion of cells expressing known markers, etc.). I see this identification being most prominent with the heirarchical annotation. Take for example a dataset where, at a low resolution, a known cell-type cluster splits into several smaller clusters at a higher resolution. I plan to implement this model to display the most likely cell type(s) for each sub-cluster. I am not certain on the exact method I would use to compute and predict the likelihood of each cell type, but that is to be explored and refined in this class. 
-#### Existing Resources
-While this annotator may seem ambitious, my year of experience has lent me some invaluable resources. In preparing to process the current dataset, we (the lab) created an extensive adipocyte cell marker database from existing published works. This will reduce the work time for data collection and referencing as I already have access to known markers, allowing me to dedicate more time to the contruction and refinement of my model. While our cell marker database will eliminate some required reference data gathering, I plan to use that additional time to establish an extensive dataset with which to train my model [see Data Collection subheading]. Along with the physical existing resources, I also have a deeper than surface-level understanding of using Numpy, Pandas, SciPy, and similar packages. Becasue of this, I think this project is within my reasonable scope to achieve in the given timeframe.
+## **Current Progress**
+### Data Processing
+I have successfully implemented a data processing pipeline that:
 
+- Reads and processes single-cell RNA-seq data from multiple GEO datasets (currently GSE272938 and GSE266326)
+- Handles both 10X Genomics formats (matrix.mtx.gz, features.tsv.gz, barcodes.tsv.gz) and H5 files
+- Performs basic quality control (filtering cells with <200 genes, filtering genes present in <3 cells)
+- Normalizes expression data (target_sum=1e4) and applies log transformation
+- Identifies highly variable genes for dimensionality reduction
+
+### Model Development
+I have developed a Random Forest classification model to automatically annotate cell types in adipose tissue:
+
+1. **Feature Engineering:** For each cell, I extract features based on the expression of marker genes for each adipocyte cell type
+
+- Mean expression of marker genes for each cell type
+- Maximum expression of marker genes for each cell type
+- Proportion of expressed marker genes for each cell type
+- General cell features (total gene counts, number of expressed genes)
+
+
+2. **Model Training:**
+
+- Trained on 8,607 cells from multiple adipose tissue sources
+- 5-fold cross-validation with a mean score of 0.76
+- Overall accuracy on test set: 83%
+
+
+3. **Model Performance:**
+
+- Strong performance for stromal cells (F1: 0.86) and immune cells (F1: 0.84)
+- Good performance for white adipocytes (F1: 0.72)
+- Moderate performance for beige adipocytes (F1: 0.63)
+- Poor performance for brown adipocytes (F1: 0.00) due to limited training data
+
+
+
+### Visualization
+I have implemented visualization features to evaluate model performance:
+
+- Confusion matrix showing the classification accuracy for each cell type
+- Feature importance analysis highlighting the most informative features
+- t-SNE plots of cellular data with predicted cell type annotations
+
+### Cell Type Annotator
+The current version of my annotator can:
+
+- Read single-cell RNA-seq data in standard formats
+- Preprocess the data using standard bioinformatic approaches
+- Identify clusters of cells using K-means clustering
+- Predict the most likely cell type for each cluster based on marker gene expression
+- Provide confidence scores for predictions
+  
 ## **Goals**
 The goal of this project is to create an automated adipocyte cell annotator that identifies ideal cluster resolution and predicts most-likely cell types of clusters. Along with predicting celltypes based on known markers, this annotator will identify unknown or new celltypes for user review to help aid in the identification of potential new cell types and/or pathways.
 
+## **Next Steps**
+1. **Data Expansion:**
+   - Add datasets with better representation of brown adipocytes
+   - Include cold-stimulated datasets for better beige adipocyte identification
+   - Add obesity-related datasets to improve disease state recognition
+2. **Model Refinement:**
+   - Implement hierarchical clustering for multi-level cell type classification
+   - Add novel cell type identification based on confidence scores
+   - Improve feature engineering to better capture cell state transitions
+3. **Visualization Enhancement:**
+   - Develop hierarchical cell marker tree visualization
+   - Add interactive visualizations for exploring clustering results
+   - mplement confidence visualization for potentially novel cell types
+
 ## **Data Collection**
-I plan to a utilize public data sets from the National Library of Medicine - National Center for Biotechnology Information (NLM-NCBI) genomics data repository, the Gene Expression Omnibus (GEO) [https://www.ncbi.nlm.nih.gov/gds/?term=adipose]. There are over 75,000 public datasets containing adipose tissue sequencing. I will then select a subset of these to use as my testing/training sets. I currently plan to select around 20 datasets to ensure comprehensive training and testing. I want to ensure thorough coverage of adipocyte types (white, brown, and beige), species (human and mice), and adipocyte cell suptypes; a complete dataset for this project will include multiple examples of both species and all adipocyte types and subtypes.
+Currently utilizing public data sets from the National Library of Medicine - National Center for Biotechnology Information (NLM-NCBI) genomics data repository, the Gene Expression Omnibus (GEO). I have processed two key datasets (GSE272938 - adipocyte de-differentiation study and GSE266326 - influenza infection study). I plan to expand to additional datasets to ensure comprehensive coverage of adipocyte types (white, brown, and beige), species (human and mice), and adipocyte cell subtypes.
 
 ## **Data Visualization**
-The overall clustering and type annotation will be visualized with a t-SNE plot, however a heirarchical cell marker tree will be essential to conveying predictions. This tree is a more niche presentation of results. Each level of the tree denotes the clusters at a given resolution with branches leading to sub-clusters. This visualization typically also includes some figure depicting marker genes identified in each cluster. One additional aspect I hope to include in my visualization is a confidence or liklihood prediction for unknown/new cell types.
+The current implementation includes t-SNE visualization of clustering and cell type predictions. I am developing a hierarchical cell marker tree that will better represent relationships between cell types at different clustering resolutions. This visualization will include confidence scores for predictions and highlight potentially novel cell types or states.
 
 ## **Test Plan**
-I plan to use a 70-20-10 split for training, validation, and test data. While some approaches may use a completely random method to divide the data into training and testing, due to the nature of my data I want to ensure the most comprehensive training of my model as possible. This means ensuring each phase is exposed to both human and mouse datasets along with the full expanse of cell types. With my target of using at least 20 existing datasets, this would ensure at least 2 sets will be used in the testing phase (a human and mouse data set). Although, this target number of datasets will most likely increase as I hope to make my model as robust and comprehensive as possible, ensuring proper validation (including testing for failure).
+I am using a 70-20-10 split for training, validation, and test data. The current model has been evaluated using 5-fold cross-validation (mean score: 0.76) and testing on a held-out portion of the data (accuracy: 83%). As more datasets are added, I will maintain this rigorous validation approach, ensuring that the model generalizes well to unseen data from different experimental conditions, tissues, and species.
