@@ -1,0 +1,198 @@
+2025-03-31 18:07:51,872 - INFO - Scanpy configuration successful
+2025-03-31 18:07:51,874 - INFO - Processing GSE272938 data
+2025-03-31 18:07:51,876 - INFO - Processing 10X dataset: eWAT_DFAT
+2025-03-31 18:07:51,878 - INFO - Reading files with gzip handling for eWAT_DFAT
+2025-03-31 18:07:51,879 - INFO - Reading barcodes file: geo_data/GSE272938_extracted/GSM8415340_eWAT_DFAT_barcodes.tsv.gz
+2025-03-31 18:07:52,252 - INFO - Reading features file: geo_data/GSE272938_extracted/GSM8415340_eWAT_DFAT_features.tsv.gz
+2025-03-31 18:07:52,274 - INFO - Reading matrix file: geo_data/GSE272938_extracted/GSM8415340_eWAT_DFAT_matrix.mtx.gz
+2025-03-31 18:09:43,019 - INFO - Creating AnnData object with shape (1930796, 32285)
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:09:44,098 - INFO - Successfully loaded eWAT_DFAT: 1930796 cells, 32285 genes
+2025-03-31 18:09:44,117 - INFO - Running basic preprocessing on eWAT_DFAT
+2025-03-31 18:09:46,998 - INFO - Subsampling eWAT_DFAT from 7746 to 5000 cells
+2025-03-31 18:09:47,203 - INFO - Processing 10X dataset: iWAT_DFAT
+2025-03-31 18:09:47,210 - INFO - Reading files with gzip handling for iWAT_DFAT
+2025-03-31 18:09:47,210 - INFO - Reading barcodes file: geo_data/GSE272938_extracted/GSM8415341_iWAT_DFAT_barcodes.tsv.gz
+2025-03-31 18:09:47,523 - INFO - Reading features file: geo_data/GSE272938_extracted/GSM8415341_iWAT_DFAT_features.tsv.gz
+2025-03-31 18:09:47,544 - INFO - Reading matrix file: geo_data/GSE272938_extracted/GSM8415341_iWAT_DFAT_matrix.mtx.gz
+2025-03-31 18:11:47,664 - INFO - Creating AnnData object with shape (1879749, 32285)
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:11:48,689 - INFO - Successfully loaded iWAT_DFAT: 1879749 cells, 32285 genes
+2025-03-31 18:11:48,708 - INFO - Running basic preprocessing on iWAT_DFAT
+2025-03-31 18:11:51,892 - INFO - Subsampling iWAT_DFAT from 8448 to 5000 cells
+2025-03-31 18:11:52,103 - INFO - Processing 10X dataset: eWAT_SVF
+2025-03-31 18:11:52,110 - INFO - Reading files with gzip handling for eWAT_SVF
+2025-03-31 18:11:52,110 - INFO - Reading barcodes file: geo_data/GSE272938_extracted/GSM8415342_eWAT_SVF_barcodes.tsv.gz
+2025-03-31 18:11:52,377 - INFO - Reading features file: geo_data/GSE272938_extracted/GSM8415342_eWAT_SVF_features.tsv.gz
+2025-03-31 18:11:52,398 - INFO - Reading matrix file: geo_data/GSE272938_extracted/GSM8415342_eWAT_SVF_matrix.mtx.gz
+2025-03-31 18:13:47,596 - INFO - Creating AnnData object with shape (1599387, 32285)
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:13:48,270 - INFO - Successfully loaded eWAT_SVF: 1599387 cells, 32285 genes
+2025-03-31 18:13:48,287 - INFO - Running basic preprocessing on eWAT_SVF
+2025-03-31 18:13:51,284 - INFO - Subsampling eWAT_SVF from 8462 to 5000 cells
+2025-03-31 18:13:51,485 - INFO - Processing 10X dataset: iWAT_SVF
+2025-03-31 18:13:51,512 - INFO - Reading files with gzip handling for iWAT_SVF
+2025-03-31 18:13:51,513 - INFO - Reading barcodes file: geo_data/GSE272938_extracted/GSM8415343_iWAT_SVF_barcodes.tsv.gz
+2025-03-31 18:13:51,848 - INFO - Reading features file: geo_data/GSE272938_extracted/GSM8415343_iWAT_SVF_features.tsv.gz
+2025-03-31 18:13:51,871 - INFO - Reading matrix file: geo_data/GSE272938_extracted/GSM8415343_iWAT_SVF_matrix.mtx.gz
+2025-03-31 18:15:51,286 - INFO - Creating AnnData object with shape (1896243, 32285)
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:15:52,320 - INFO - Successfully loaded iWAT_SVF: 1896243 cells, 32285 genes
+2025-03-31 18:15:52,339 - INFO - Running basic preprocessing on iWAT_SVF
+2025-03-31 18:15:55,546 - INFO - Subsampling iWAT_SVF from 8539 to 5000 cells
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+2025-03-31 18:16:00,514 - INFO - Combined 4 datasets for GSE272938: 20000 cells, 23327 genes
+2025-03-31 18:16:00,515 - INFO - Running preprocessing and clustering on dataset with 20000 cells
+2025-03-31 18:16:00,516 - INFO - Manually selecting 2000 highly variable genes
+2025-03-31 18:16:05,667 - INFO - Selected 2000 highly variable genes
+2025-03-31 18:16:06,272 - INFO - Running manual PCA with 50 components
+/scratch/3358772.1.bravaya-pub/ipykernel_4110001/1615288014.py:222: ImplicitModificationWarning: Setting element `.obsm['X_pca']` of view, initializing view as actual.
+  adata.obsm['X_pca'] = X_pca
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+2025-03-31 18:16:13,230 - INFO - PCA complete: explained variance ratio sum = 0.2763
+2025-03-31 18:16:13,244 - INFO - Running manual t-SNE
+2025-03-31 18:19:34,916 - INFO - t-SNE complete
+2025-03-31 18:19:34,918 - INFO - Running KMeans clustering with 20 clusters
+2025-03-31 18:19:37,278 - INFO - KMeans clustering complete: 20 clusters
+2025-03-31 18:19:37,280 - INFO - Annotating clusters based on marker genes
+2025-03-31 18:19:44,613 - INFO - Cell type distribution:
+2025-03-31 18:19:44,614 - INFO -   stromal_cells: 11733 cells (58.7%)
+2025-03-31 18:19:44,615 - INFO -   white_adipocyte: 8158 cells (40.8%)
+2025-03-31 18:19:44,615 - INFO -   unknown: 95 cells (0.5%)
+2025-03-31 18:19:44,616 - INFO -   immune_cells: 12 cells (0.1%)
+2025-03-31 18:19:44,616 - INFO -   brown_adipocyte: 2 cells (0.0%)
+2025-03-31 18:19:44,617 - INFO - Creating visualization plots
+2025-03-31 18:19:44,620 - WARNING - UMAP not computed, skipping UMAP plots
+2025-03-31 18:19:44,621 - INFO - Processing GSE266326 data
+2025-03-31 18:19:44,623 - INFO - Processing H5 dataset: Chow-Flu-5
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:19:45,857 - INFO - Successfully loaded Chow-Flu-5 as 10X H5: 5841 cells, 28692 genes
+2025-03-31 18:19:45,859 - INFO - Running basic preprocessing on Chow-Flu-5
+2025-03-31 18:19:46,937 - INFO - Subsampling Chow-Flu-5 from 5759 to 5000 cells
+2025-03-31 18:19:47,034 - INFO - Processing H5 dataset: Chow-Flu-6
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:19:48,162 - INFO - Successfully loaded Chow-Flu-6 as 10X H5: 5403 cells, 28692 genes
+2025-03-31 18:19:48,164 - INFO - Running basic preprocessing on Chow-Flu-6
+2025-03-31 18:19:49,141 - INFO - Subsampling Chow-Flu-6 from 5325 to 5000 cells
+2025-03-31 18:19:49,237 - INFO - Processing H5 dataset: Chow-Saline-1
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:19:49,972 - INFO - Successfully loaded Chow-Saline-1 as 10X H5: 3679 cells, 28692 genes
+2025-03-31 18:19:49,974 - INFO - Running basic preprocessing on Chow-Saline-1
+2025-03-31 18:19:50,597 - INFO - Processing H5 dataset: EWAT-CD45pos
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:19:51,742 - INFO - Successfully loaded EWAT-CD45pos as 10X H5: 4869 cells, 28692 genes
+2025-03-31 18:19:51,745 - INFO - Running basic preprocessing on EWAT-CD45pos
+2025-03-31 18:19:52,723 - INFO - Processing H5 dataset: HINI-EWAT-CD45pos
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1756: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+2025-03-31 18:19:53,984 - INFO - Successfully loaded HINI-EWAT-CD45pos as 10X H5: 5629 cells, 28692 genes
+2025-03-31 18:19:53,986 - INFO - Running basic preprocessing on HINI-EWAT-CD45pos
+2025-03-31 18:19:55,106 - INFO - Subsampling HINI-EWAT-CD45pos from 5446 to 5000 cells
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+2025-03-31 18:19:58,532 - INFO - Combined 5 datasets for GSE266326: 23034 cells, 21203 genes
+2025-03-31 18:19:58,533 - INFO - Running preprocessing and clustering on dataset with 23034 cells
+2025-03-31 18:19:58,533 - INFO - Manually selecting 2000 highly variable genes
+2025-03-31 18:20:01,079 - INFO - Selected 2000 highly variable genes
+2025-03-31 18:20:01,399 - INFO - Running manual PCA with 50 components
+/scratch/3358772.1.bravaya-pub/ipykernel_4110001/1615288014.py:222: ImplicitModificationWarning: Setting element `.obsm['X_pca']` of view, initializing view as actual.
+  adata.obsm['X_pca'] = X_pca
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+2025-03-31 18:20:06,231 - INFO - PCA complete: explained variance ratio sum = 0.3829
+2025-03-31 18:20:06,238 - INFO - Running manual t-SNE
+2025-03-31 18:24:05,021 - INFO - t-SNE complete
+2025-03-31 18:24:05,022 - INFO - Running KMeans clustering with 20 clusters
+2025-03-31 18:24:07,216 - INFO - KMeans clustering complete: 20 clusters
+2025-03-31 18:24:07,217 - INFO - Annotating clusters based on marker genes
+2025-03-31 18:24:10,715 - INFO - Cell type distribution:
+2025-03-31 18:24:10,716 - INFO -   immune_cells: 12719 cells (55.2%)
+2025-03-31 18:24:10,717 - INFO -   stromal_cells: 10038 cells (43.6%)
+2025-03-31 18:24:10,717 - INFO -   white_adipocyte: 153 cells (0.7%)
+2025-03-31 18:24:10,718 - INFO -   beige_adipocyte: 124 cells (0.5%)
+2025-03-31 18:24:10,718 - INFO - Creating visualization plots
+2025-03-31 18:24:10,722 - WARNING - UMAP not computed, skipping UMAP plots
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+/usr4/ugrad/aliviap/.local/lib/python3.10/site-packages/anndata/_core/anndata.py:1754: UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+  utils.warn_names_duplicates("obs")
+2025-03-31 18:24:15,543 - INFO - Combined all datasets: 43034 cells, 3386 genes
+2025-03-31 18:24:15,544 - INFO - Preparing features for training
+2025-03-31 18:24:45,919 - INFO - Prepared 43034 cells with 17 features
+2025-03-31 18:24:45,955 - INFO - Training random forest model
+2025-03-31 18:24:56,236 - INFO - Model training accuracy: 1.0000
+2025-03-31 18:24:56,238 - INFO - Model test accuracy: 0.8257
+/share/pkg.8/python3/3.10.12/install/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1469: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+/share/pkg.8/python3/3.10.12/install/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1469: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+/share/pkg.8/python3/3.10.12/install/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1469: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+2025-03-31 18:24:56,608 - INFO - Classification report:
+                 precision    recall  f1-score   support
+
+beige_adipocyte       0.81      0.52      0.63        25
+brown_adipocyte       0.00      0.00      0.00         1
+   immune_cells       0.85      0.82      0.84      2546
+  stromal_cells       0.84      0.88      0.86      4354
+        unknown       0.08      0.05      0.06        19
+white_adipocyte       0.74      0.69      0.72      1662
+
+       accuracy                           0.83      8607
+      macro avg       0.56      0.50      0.52      8607
+   weighted avg       0.82      0.83      0.82      8607
+
+2025-03-31 18:24:56,630 - INFO - Top 10 important features:
+                      feature  importance
+16               total_counts    0.192849
+15                    n_genes    0.114807
+6   beige_adipocyte_mean_expr    0.081186
+12     immune_cells_mean_expr    0.075288
+7    beige_adipocyte_max_expr    0.067834
+0   white_adipocyte_mean_expr    0.058563
+4    brown_adipocyte_max_expr    0.056380
+1    white_adipocyte_max_expr    0.054786
+13      immune_cells_max_expr    0.052768
+10     stromal_cells_max_expr    0.050929
+/share/pkg.8/python3/3.10.12/install/lib/python3.10/site-packages/sklearn/model_selection/_split.py:725: UserWarning: The least populated class in y has only 2 members, which is less than n_splits=5.
+  warnings.warn(
+2025-03-31 18:25:44,580 - INFO - Cross-validation scores: [0.71906588 0.71104915 0.85337516 0.80213779 0.71821985]
+2025-03-31 18:25:44,581 - INFO - Mean CV score: 0.7608
+2025-03-31 18:25:45,651 - INFO - Model and artifacts saved to models
+2025-03-31 18:25:46,627 - INFO - Training pipeline completed successfully
+... storing 'dataset' as categorical
+... storing 'tissue' as categorical
+... storing 'initial_type' as categorical
+2025-03-31 18:26:06,400 - INFO - Saved annotated data to annotated_data.h5ad
