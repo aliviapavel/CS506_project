@@ -1,0 +1,6 @@
+# requirements.txt
+scanpy>=1.9.1
+scikit-learn>=1.0.2
+joblib>=1.1.0
+matplotlib>=3.5.1
+pandas>=1.4.0
