@@ -1,5 +1,8 @@
 # **Automated Adipocyte Cell Identifier and Annotator** #
 [https://youtu.be/jer6YBh_jN4]
+## Quick Start
+1. Install requirements: `pip install -r requirements.txt`
+2. Run demo notebook: `examples/demo.ipynb`
 ## **Description**
 For the past year, I have worked under Dr. Nabil Rabhi in the Biochemistry Department over at the BU Medical Campus. There I have learned the basics of the single-cell RNA sequencing pipeline, doing quality control, annotation, and now analysis. Through this process I found there are several rather tedious steps in the process that have the potential to be automated with specialized packages and models. There exist several annotation packages in which you can train the model with self-provided data sets. However, very few packages exist that are pre-trained. My proposed package would be one such pre-trained model, specialized on adipose tissue. This model would then be able to be used in my, as well as others, analysis of adipose tissue, allowing for an ease of identification and annotation of sequenced data.
 #### Cell Type Annotator
