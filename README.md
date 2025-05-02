@@ -2,7 +2,7 @@
 A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
 [https://youtu.be/jer6YBh_jN4]
 ## Installation
-```bash
+
 # Clone the repository
 git clone https://github.com/yourusername/adipocyte-classifier.git
 cd adipocyte-classifier
