@@ -2,14 +2,14 @@
 A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
 [https://youtu.be/Z2oN9tKxrFg]
 ## Testing
-clone this repo, then you can run this from the main directory:
+Clone this repo, then you can run this from the main directory:
 ```
 pip install pytest
 pip install -r requirements.txt
 pytest tests/test_script.py -v -p no:warnings --disable-warnings
 ls -lh tests/test_results/*.png
 ```
-**Note:** When you run the test file, it will say 10 failed, 15 passed. The fails are due to there not being a "kmeans" column in my small set of test data. This is because I had to make the test set myself as a compilation and excerpt from my actual data. I forgot to cluster the data before I moved it over and frankly it is 12:30am and I do not feel like completely rerunning my code right now. Besides the kmeans column it works. I'll fix it Friday (5/2) when I have time.
+Then, look in the figures folder. The mouse model performs much better as it is more robust than the human one with available samples.
 ## Usage Examples
 **Processing 10X Data**
 ```
