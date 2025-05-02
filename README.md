@@ -1,24 +1,11 @@
 # **Automated Adipocyte Cell Identifier and Annotator** #
 A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
 [https://youtu.be/jer6YBh_jN4]
-## Installation
+## Testing
 ```
-# Clone the repository
-git clone https://github.com/yourusername/adipocyte-classifier.git
-cd adipocyte-classifier
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Install the package in development mode
-pip install -e .
+pytest tests/
 ```
-## Quick Start
-10X Genomics data is in in `geo_data/extracted/` directory.
-Models in `models/human/` and `models/mouse/` directories.
-
-Run the model evaluation: `python test_models.py`
-Results will appear in the `results/` directory.
 ## Usage Examples
 **Processing 10X Data**
 ```

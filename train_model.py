@@ -1034,10 +1034,10 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.decomposition import TruncatedSVD
 
 def preprocess_and_cluster(adata, n_clusters=20, species='mouse'):
-    """Optimized hierarchical clustering with automatic performance tuning"""
-    logger.info(f"Running preprocessing and clustering for {species}")
+    """Process AnnData object with manual K-means clustering"""
+    logger.info(f"Running manual K-means clustering for {species}")
     
-    # Original preprocessing
+    # Basic preprocessing
     sc.pp.filter_cells(adata, min_genes=200)
     sc.pp.filter_genes(adata, min_cells=3)
     sc.pp.normalize_total(adata, target_sum=1e4)
@@ -1049,184 +1049,170 @@ def preprocess_and_cluster(adata, n_clusters=20, species='mouse'):
     manual_pca(adata)
     manual_tsne(adata)
     
-    # Get PCA coordinates
-    X_pca = adata.obsm['X_pca']
-    n_cells = X_pca.shape[0]
-    
-    # Performance optimization for large datasets
-    if n_cells > 10000:
-        logger.info("Applying large dataset optimizations")
-        # Further reduce dimensionality
-        svd = TruncatedSVD(n_components=min(25, X_pca.shape[1]))
-        X_pca = svd.fit_transform(X_pca)
-        adata.obsm['X_pca_optimized'] = X_pca  # Store optimized coordinates
-        
-        # Adjust parameters for high-dimensional space
-        n_neighbors = min(100, n_cells-1)
-        algorithm = 'ball_tree'
-        leaf_size = 40
-    else:
-        # Default parameters for small/medium datasets
-        n_neighbors = 15 if n_cells > 5000 else 50
-        algorithm = 'kd_tree'
-        leaf_size = 30
-
-    # Compute adaptive neighbor graph
-    logger.info(f"Computing neighbor graph (n_neighbors={n_neighbors}, algorithm={algorithm})")
-    nbrs = NearestNeighbors(
-        n_neighbors=n_neighbors,
-        algorithm=algorithm,
-        leaf_size=leaf_size,
-        metric='euclidean'
-    ).fit(X_pca)
-    
-    # Get sparse connectivity matrix
-    connectivity = nbrs.kneighbors_graph(X_pca, mode='connectivity')
-    
-    # Dynamic resolution calculation based on data scale
-    pca_std = X_pca.std(axis=0).mean()
-    base_res = round(pca_std * 2, 2)
-    resolutions = [base_res * x for x in [1, 2, 3]]  # Multiples of base resolution
-    
-    # Multi-resolution hierarchical clustering
-    logger.info(f"Clustering at resolutions: {resolutions}")
-    for res in resolutions:
-        agg = AgglomerativeClustering(
-            n_clusters=None,
-            distance_threshold=res,
-            linkage='ward',
-            connectivity=connectivity
-        )
-        labels = agg.fit_predict(X_pca)
-        adata.obs[f'hierarchical_{res}'] = labels.astype(str)
-        adata.obs[f'hierarchical_{res}'] = adata.obs[f'hierarchical_{res}'].astype('category')
-    
-    # Original KMeans clustering (preserved)
+    # Run K-means clustering
     manual_kmeans_clustering(adata, n_clusters=n_clusters)
     
-    # Build hierarchy with optimized parameters
-    adata.uns['cluster_hierarchy'] = build_cluster_hierarchy(adata, resolutions)
-    
     return adata
-
-def build_cluster_hierarchy(adata, resolutions):
-    """Optimized hierarchy builder with conflict resolution"""
-    hierarchy = {}
-    resolutions = sorted(resolutions)
-    
-    for i in range(len(resolutions)-1):
-        parent_res = resolutions[i]
-        child_res = resolutions[i+1]
-        parent_key = f'hierarchical_{parent_res}'
-        child_key = f'hierarchical_{child_res}'
-        hierarchy[child_key] = {}
-        
-        # Create parent-child mapping with conflict resolution
-        parent_child_map = defaultdict(list)
-        for (parent, child) in zip(adata.obs[parent_key], adata.obs[child_key]):
-            parent_child_map[child].append(parent)
-        
-        # Take majority vote for parent assignment
-        for child, parents in parent_child_map.items():
-            hierarchy[child_key][child] = max(set(parents), key=parents.count)
-    
-    return hierarchy
-
 # ---------------------------
 # UPDATED ANNOTATION SYSTEM
 # ---------------------------
 def annotate_clusters(adata, marker_dict, species='mouse'):
-    """Updated with hierarchical consensus"""
+    """Annotate clusters based on marker gene expression"""
     logger.info(f"Annotating clusters for {species}")
     
-    resolutions = [0.2, 0.6, 1.0]
-    annotation_results = {}
+    cluster_scores = {}
     
-    # Annotate at each resolution
-    for res in resolutions:
-        key = f"leiden_{res}"
-        cluster_scores = {}
+    # Only use kmeans clusters
+    cluster_key = 'kmeans'
+    
+    for cluster in adata.obs[cluster_key].cat.categories:
+        cluster_cells = adata[adata.obs[cluster_key] == cluster]
+        scores = {}
         
-        for cluster in adata.obs[key].cat.categories:
-            cluster_cells = adata[adata.obs[key] == cluster]
-            scores = {}
-            
-            for cell_type, markers in marker_dict.items():
-                markers_in_data = [m for m in markers if m in adata.var_names]
-                if not markers_in_data: continue
+        for cell_type, markers in marker_dict.items():
+            markers_in_data = [m for m in markers if m in adata.var_names]
+            if not markers_in_data:
+                continue
                 
-                expr = cluster_cells[:, markers_in_data].X.mean(axis=1)
-                scores[cell_type] = np.mean(expr)
-            
-            cluster_scores[cluster] = scores
+            # Calculate mean expression safely
+            if sparse.issparse(cluster_cells.X):
+                expr = cluster_cells[:, markers_in_data].X.mean(axis=0).A1
+            else:
+                expr = cluster_cells[:, markers_in_data].X.mean(axis=0)
+                
+            scores[cell_type] = float(np.mean(expr))
         
-        annotation_results[key] = cluster_scores
+        cluster_scores[cluster] = scores
     
-    # Store annotations and calculate consensus
-    adata.uns['hierarchical_annotations'] = annotation_results
-    adata.obs['final_annotation'] = calculate_consensus_annotation(adata)
+    # Store annotations
+    adata.uns['cluster_annotations'] = cluster_scores
     
-    # Original confidence calculation
-    confidence_scores = {}
-    for cluster in adata.obs['leiden'].cat.categories:
-        scores = adata.uns['hierarchical_annotations']['leiden_1.0'][cluster]
-        confidence_scores[cluster] = max(scores.values()) if scores else 0
+    # Assign cell types based on clusters
+    cell_types = []
+    for idx in range(adata.n_obs):
+        cluster = adata.obs[cluster_key][idx]
+        scores = cluster_scores[cluster]
+        if scores:
+            cell_type = max(scores, key=scores.get)
+        else:
+            cell_type = 'unknown'
+        cell_types.append(cell_type)
     
-    adata.obs['confidence'] = adata.obs['leiden'].map(confidence_scores)
+    adata.obs['cell_type'] = cell_types
     
-    logger.info(f"Cell type distribution:\n{adata.obs['final_annotation'].value_counts()}")
     return adata
 
 def calculate_consensus_annotation(adata):
-    """NEW: Majority vote across resolutions"""
+    """Updated for hierarchical keys"""
     consensus = []
+    resolutions = sorted(adata.uns['cluster_hierarchy'].keys(), key=lambda x: float(x.split('_')[1]))
+    
     for cell in adata.obs.index:
         votes = []
-        for res in [0.2, 0.6, 1.0]:
-            cluster = adata.obs[f"leiden_{res}"][cell]
-            ann = adata.uns['hierarchical_annotations'][f"leiden_{res}"][cluster]
+        for res in resolutions:
+            cluster = adata.obs[res][cell]
+            ann = adata.uns['hierarchical_annotations'][res][cluster]
             votes.append(max(ann, key=ann.get) if ann else 'unknown')
         consensus.append(max(set(votes), key=votes.count))
+    
     return consensus
 
 # ---------------------------
 # UPDATED VISUALIZATION
 # ---------------------------
 def visualize_results(adata, output_dir='.', species='mouse'):
-    """Updated with hierarchical plots"""
-    # Original plots
+    """Visualize clustering results focusing on K-means"""
     fig_dir = os.path.join(output_dir, 'figures', species)
     os.makedirs(fig_dir, exist_ok=True)
     
-    plt.figure(figsize=(10, 8))
-    sc.pl.tsne(adata, color='final_annotation', legend_loc='on data', show=False)
-    plt.savefig(os.path.join(fig_dir, f'{species}_cell_types.png'))
-    plt.close()
+    # Plot K-means clusters
+    try:
+        plt.figure(figsize=(10, 8))
+        sc.pl.tsne(adata, color='kmeans', legend_loc='on data', show=False)
+        plt.title(f"{species.capitalize()} K-means Clusters (n={len(adata.obs['kmeans'].cat.categories)})")
+        plt.savefig(os.path.join(fig_dir, f'{species}_kmeans_clusters.png'))
+        plt.close()
+    except Exception as e:
+        logger.error(f"Error visualizing K-means clusters: {e}")
     
-    # New hierarchical plots
-    plot_hierarchical_clusters(adata, fig_dir)
-    plot_annotation_consistency(adata, fig_dir)
+    # Plot cell types
+    try:
+        plt.figure(figsize=(10, 8))
+        sc.pl.tsne(adata, color='cell_type', legend_loc='on data', show=False)
+        plt.title(f"{species.capitalize()} Cell Types")
+        plt.savefig(os.path.join(fig_dir, f'{species}_cell_types.png'))
+        plt.close()
+    except Exception as e:
+        logger.error(f"Error visualizing cell types: {e}")
+        
+    # Create cluster-cell type relationship visualization
+    try:
+        # Create a cross-tabulation between clusters and cell types
+        cluster_celltype = pd.crosstab(
+            adata.obs['kmeans'], 
+            adata.obs['cell_type'],
+            normalize='index'  # Normalize by row (cluster)
+        )
+        
+        # Plot heatmap
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(cluster_celltype, annot=True, cmap='viridis', fmt='.2f')
+        plt.title(f"{species.capitalize()} Cluster to Cell Type Mapping")
+        plt.xlabel('Cell Type')
+        plt.ylabel('K-means Cluster')
+        plt.xticks(rotation=45, ha='right')
+        plt.tight_layout()
+        plt.savefig(os.path.join(fig_dir, f'{species}_cluster_celltype_mapping.png'))
+        plt.close()
+        
+        # Save the mapping to CSV for reference
+        cluster_celltype.to_csv(os.path.join(fig_dir, f'{species}_cluster_celltype_mapping.csv'))
+    except Exception as e:
+        logger.error(f"Error creating cluster-cell type mapping: {e}")
     
-    # Original violin plots
-    plot_marker_violins(adata, fig_dir, species)
-
-def plot_hierarchical_clusters(adata, output_dir):
-    """NEW: Resolution comparison"""
-    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
-    for i, res in enumerate([0.2, 0.6, 1.0]):
-        sc.pl.tsne(adata, color=f"leiden_{res}", ax=axs[i], show=False)
-        axs[i].set_title(f"Resolution {res}")
-    plt.savefig(os.path.join(output_dir, 'hierarchical_clusters.png'))
+    return
+    
+def plot_marker_violins(adata, fig_dir, species):
+    """Plot violin plots for marker genes"""
+    # Check available markers
+    all_markers = ['Ucp1', 'Lep', 'Adipoq', 'Cd36', 'Pparg', 'Fabp4']  # Extended adipocyte markers
+    available_markers = [m for m in all_markers if m in adata.var_names]
+    
+    if not available_markers:
+        logger.warning(f"No adipocyte markers found in dataset. Available genes: {list(adata.var_names[:5])}...")
+        return
+    
+    logger.info(f"Plotting violin plots for markers: {available_markers}")
+    
+    plt.figure(figsize=(12, 6))
+    sc.pl.violin(
+        adata,
+        keys=available_markers[:3],  # Use up to 3 available markers
+        groupby='kmeans',
+        rotation=45,
+        show=False
+    )
+    plt.savefig(os.path.join(fig_dir, f'{species}_marker_violins.png'))
     plt.close()
 
 def plot_annotation_consistency(adata, output_dir):
-    """NEW: Annotation agreement"""
-    consistency = pd.crosstab(
-        adata.obs['leiden_0.2'],
-        [adata.obs['leiden_0.6'], adata.obs['leiden_1.0']]
-    )
+    """Updated for hierarchical clustering"""
+    # Get two most granular resolutions
+    resolutions = sorted(
+        [key for key in adata.obs.columns if key.startswith('hierarchical_')],
+        key=lambda x: float(x.split('_')[1])
+    )[-2:]  # Last two resolutions
+    
+    if len(resolutions) < 2:
+        logger.warning("Not enough resolutions for consistency plot")
+        return
+    
+    parent_key, child_key = resolutions
+    consistency = pd.crosstab(adata.obs[parent_key], adata.obs[child_key])
+    
     plt.figure(figsize=(12, 8))
-    sns.heatmap(consistency, annot=True, fmt='d')
+    sns.heatmap(consistency, annot=True, fmt='d', cmap='viridis')
+    plt.title(f"Cluster consistency: {parent_key} vs {child_key}")
     plt.savefig(os.path.join(output_dir, 'annotation_consistency.png'))
     plt.close()
 
@@ -1295,6 +1281,9 @@ def prepare_features_for_training(adata, cell_markers, species='mouse'):
         else:
             feature_dict['total_counts'] = np.sum(cell_expr)
         
+        # Add cluster feature
+        feature_dict['kmeans_cluster'] = int(adata.obs['kmeans'][cell_idx])
+        
         # Get label (true cell type)
         cell_type = adata.obs['cell_type'][cell_idx]
         
@@ -1309,15 +1298,10 @@ def prepare_features_for_training(adata, cell_markers, species='mouse'):
     
     return feature_df, np.array(labels)
 
-def train_random_forest_model(features, labels, species='mouse'):
-    """Enhanced with hierarchical features"""
-    # Original logic
+def train_random_forest_model(features, labels, species='mouse', output_dir='models'):
+    """Train a Random Forest model with confusion matrix generation"""
+    # Split data
     X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2)
-    
-    # Add hierarchical stability feature (NEW)
-    features['hier_stability'] = features.apply(
-        lambda row: calculate_cluster_stability(row, adata), axis=1
-    )
     
     # Species-specific config
     config = {
@@ -1329,21 +1313,70 @@ def train_random_forest_model(features, labels, species='mouse'):
     model = RandomForestClassifier(**params)
     model.fit(X_train, y_train)
     
-    # Original evaluation
-    logger.info(f"Accuracy: {model.score(X_test, y_test):.2f}")
+    # Evaluation
+    y_pred = model.predict(X_test)
+    accuracy = model.score(X_test, y_test)
+    logger.info(f"Accuracy: {accuracy:.2f}")
     logger.info(f"Feature importances:\n{pd.Series(model.feature_importances_, index=features.columns).sort_values(ascending=False)}")
+    
+    # Generate confusion matrix
+    logger.info("Generating confusion matrix")
+    cm = confusion_matrix(y_test, y_pred)
+    
+    # Get unique class labels
+    class_labels = np.unique(np.concatenate([y_test, y_pred]))
+    
+    # Plot confusion matrix
+    fig_dir = os.path.join(output_dir, 'figures', species)
+    os.makedirs(fig_dir, exist_ok=True)
+    
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+                xticklabels=class_labels, yticklabels=class_labels)
+    plt.title(f'{species.capitalize()} Model Confusion Matrix')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    
+    # Save confusion matrix
+    confusion_matrix_path = os.path.join(fig_dir, f'{species}_confusion_matrix.png')
+    plt.savefig(confusion_matrix_path)
+    plt.close()
+    logger.info(f"Confusion matrix saved to {confusion_matrix_path}")
+    
+    # Generate detailed classification report
+    report = classification_report(y_test, y_pred)
+    logger.info(f"Classification Report:\n{report}")
+    
+    # Save classification report to file
+    report_path = os.path.join(fig_dir, f'{species}_classification_report.txt')
+    with open(report_path, 'w') as f:
+        f.write(f"Model: {species.capitalize()} Adipocyte Classifier\n")
+        f.write(f"Accuracy: {accuracy:.4f}\n\n")
+        f.write(report)
+    logger.info(f"Classification report saved to {report_path}")
     
     return model
 
 def calculate_cluster_stability(row, adata):
-    """NEW: Calculate cross-resolution stability"""
+    """Updated for hierarchical clustering"""
+    # Get sorted resolutions from cluster hierarchy
+    resolutions = sorted(
+        [key for key in adata.obs.columns if key.startswith('hierarchical_')],
+        key=lambda x: float(x.split('_')[1])
+    )  # Close parenthesis added here
+    
+    # Need at least 3 resolutions for stability calculation
+    if len(resolutions) < 3:
+        return 0
+    
     clusters = [
-        adata.obs.loc[row.name, 'leiden_0.2'],
-        adata.obs.loc[row.name, 'leiden_0.6'],
-        adata.obs.loc[row.name, 'leiden_1.0']
+        adata.obs.loc[row.name, resolutions[0]],
+        adata.obs.loc[row.name, resolutions[1]],
+        adata.obs.loc[row.name, resolutions[2]]
     ]
     return len(set(clusters))
-
 # ---------------------------
 # REMAINING ORIGINAL FUNCTIONS (UNCHANGED)
 # ---------------------------
@@ -1378,16 +1411,13 @@ def save_model_and_artifacts(model, feature_names, output_dir='models', species=
 
 def process_datasets_and_train_model(dataset_dict, data_dir='geo_data', 
                                    output_dir='models', species='mouse',
-                                   n_clusters=20, resolutions=[0.2, 0.6, 1.0]):
-    """
-    Updated pipeline with hierarchical processing
-    Maintains original parameters but adds resolution control
-    """
+                                   n_clusters=20):
+    """Pipeline with manual K-means clustering"""
     logger.info(f"Starting {species} model training pipeline")
     
     adatas = []
     for geo_id in dataset_dict:
-        # Original data loading remains unchanged
+        # Process GEO dataset
         adata = process_geo_dataset(
             geo_id, 
             dataset_dict, 
@@ -1396,28 +1426,25 @@ def process_datasets_and_train_model(dataset_dict, data_dir='geo_data',
         )
         
         if adata is not None:
-            # Updated preprocessing with hierarchical clustering
+            # Preprocessing with manual K-means
             adata = preprocess_and_cluster(
                 adata,
                 n_clusters=n_clusters,
                 species=species
             )
             
-            # Hierarchical annotation
+            # Annotation
             if species.lower() == 'mouse':
                 adata = annotate_clusters(adata, MOUSE_CELL_MARKERS, species=species)
             else:
                 adata = annotate_clusters(adata, HUMAN_CELL_MARKERS, species=species)
             
-            # Enhanced visualization including hierarchy
+            # Visualization
             visualize_results(adata, output_dir, species=species)
             
-            # Store key hierarchical metrics
-            adata.uns['training_parameters'] = {
-                'resolutions': resolutions,
-                'n_clusters': n_clusters,
-                'species': species
-            }
+            # Plot marker violins
+            fig_dir = os.path.join(output_dir, 'figures', species)
+            plot_marker_violins(adata, fig_dir, species)
             
             adatas.append(adata)
     
@@ -1425,10 +1452,20 @@ def process_datasets_and_train_model(dataset_dict, data_dir='geo_data',
         logger.error(f"No valid datasets processed for {species}")
         return None, None
     
-    # Dataset combination (original logic)
-    combined_adata = sc.concat(adatas, join='outer') if len(adatas) > 1 else adatas[0]
+    # Dataset combination
+    if len(adatas) > 1:
+        # Add unique obs names to avoid conflicts
+        for i, adata in enumerate(adatas):
+            adata.obs_names_make_unique(f"dataset{i}_")
+        
+        combined_adata = sc.concat(adatas, join='outer')
+        # Make sure names are unique after concatenation
+        combined_adata.var_names_make_unique()
+        combined_adata.obs_names_make_unique()
+    else:
+        combined_adata = adatas[0]
     
-    # Prepare features with hierarchy-aware metrics
+    # Prepare features
     if species == 'mouse':
         features, labels = prepare_features_for_training(
             combined_adata, 
@@ -1442,27 +1479,31 @@ def process_datasets_and_train_model(dataset_dict, data_dir='geo_data',
             species=species
         )
     
-    # Train model with hierarchy-enhanced features
-    model, eval_data = train_random_forest_model(
-        features,
-        labels,
-        species=species
-    )
+    # Train model with confusion matrix generation
+    logger.info(f"Training {species} model")
+    model = train_random_forest_model(features, labels, species=species, output_dir=output_dir)
     
-    # Save complete hierarchy information
-    save_path = save_model_and_artifacts(
+    # Save model
+    model_path = save_model_and_artifacts(
         model,
         features.columns,
         output_dir=output_dir,
         species=species
     )
     
-    # New: Save hierarchical annotations
-    with open(os.path.join(output_dir, species, 'hierarchy.json'), 'w') as f:
-        json.dump({
-            'cluster_tree': combined_adata.uns['cluster_hierarchy'],
-            'annotations': combined_adata.uns['hierarchical_annotations']
-        }, f)
+    # Cross-validation to ensure robustness
+    logger.info(f"Performing cross-validation for {species} model")
+    cv_scores = cross_val_score(model, features, labels, cv=5)
+    logger.info(f"Cross-validation scores: {cv_scores}")
+    logger.info(f"Mean CV accuracy: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+    
+    # Save cross-validation results
+    cv_path = os.path.join(output_dir, 'figures', species, f'{species}_cv_results.txt')
+    with open(cv_path, 'w') as f:
+        f.write(f"Cross-validation results for {species} model:\n")
+        f.write(f"Individual scores: {cv_scores}\n")
+        f.write(f"Mean accuracy: {cv_scores.mean():.4f}\n")
+        f.write(f"Standard deviation: {cv_scores.std():.4f}\n")
     
     logger.info(f"{species} pipeline completed successfully")
     return model, combined_adata
@@ -1663,108 +1704,38 @@ def predict_with_both_models(mouse_data_path, human_data_path, mouse_model_path=
             logger.info(f"Human predictions saved to {human_output_path}")
     
     return mouse_adata, human_adata
-
 def main():
-    """
-    Updated main function with hierarchical execution plan
-    Maintains original structure with enhanced logging
-    """
-    # Original configuration
+    """Main function with manual K-means clustering"""
     configure_scanpy()
     
-    # Enhanced output directories
+    # Create output directories
     os.makedirs('models/mouse', exist_ok=True)
     os.makedirs('models/human', exist_ok=True)
     os.makedirs('models/figures/mouse', exist_ok=True) 
     os.makedirs('models/figures/human', exist_ok=True)
     
-    # Mouse processing with hierarchy
-    logger.info("\n🚀 Starting Mouse Pipeline")
-    mouse_model, mouse_adata = process_datasets_and_train_model(
-        MOUSE_GEO_DATASETS,
-        data_dir='geo_data',
-        output_dir='models',
-        species='mouse',
-        n_clusters=25,  # Used for K-means fallback
-        resolutions=[0.2, 0.4, 0.6, 1.0]  # More granular hierarchy
-    )
+    # Mouse processing with manual K-means
+    #logger.info("\n🚀 Starting Mouse Pipeline")
+    #mouse_model, mouse_adata = process_datasets_and_train_model(
+    #    MOUSE_GEO_DATASETS,
+    #   data_dir='geo_data',
+    #    output_dir='models',
+    #    species='mouse',
+    #    n_clusters=25
+    #)
     
-    # Human processing with hierarchy
+    # Human processing with manual K-means
     logger.info("\n🚀 Starting Human Pipeline")
     human_model, human_adata = process_datasets_and_train_model(
         HUMAN_GEO_DATASETS,
         data_dir='geo_data',
         output_dir='models',
         species='human',
-        n_clusters=35,  # Used for K-means fallback
-        resolutions=[0.1, 0.3, 0.6, 1.2]  # Different resolution strategy
+        n_clusters=35
     )
-    
-    # New: Save hierarchical reports
-    for species, adata in [('mouse', mouse_adata), ('human', human_adata)]:
-        if adata is not None:
-            with open(f'models/{species}/hierarchy_report.txt', 'w') as f:
-                f.write(f"Hierarchical Cluster Report - {species}\n")
-                f.write("="*40 + "\n")
-                for res in adata.uns['training_parameters']['resolutions']:
-                    f.write(f"Resolution {res}: {len(adata.obs[f'leiden_{res}'].unique())} clusters\n")
-                f.write("\nKey Parent-Child Relationships:\n")
-                for child, parents in adata.uns['cluster_hierarchy'].items():
-                    f.write(f"{child} clusters map to {len(set(parents.values()))} parent clusters\n")
     
     logger.info("\n✅ Pipeline completed successfully")
     return mouse_model, human_model
 
 if __name__ == "__main__":
     main()
-
-import scanpy as sc
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-
-# Load processed data
-adata = sc.read("processed/mouse_model.h5ad") 
-
-sc.settings.set_figure_params(dpi=300, frameon=False)
-plt.figure(figsize=(10,8))
-ax = sc.pl.tsne(
-    adata, 
-    color='final_annotation',
-    legend_loc='on data',
-    title='Mouse Adipocyte Clusters',
-    show=False
-)
-plt.tight_layout()
-plt.savefig('tsne_annotations.png')
-plt.close()
-
-import networkx as nx
-
-G = nx.DiGraph()
-for child_res in adata.uns['cluster_hierarchy']:
-    for child, parent in adata.uns['cluster_hierarchy'][child_res].items():
-        G.add_edge(f"{parent} (0.2)", f"{child} ({child_res.split('_')[1]})")
-
-plt.figure(figsize=(12,8))
-pos = nx.multipartite_layout(G, subset_key="level")
-nx.draw(
-    G, pos, with_labels=True, 
-    node_size=2000, node_color='lightblue',
-    arrowsize=20, font_size=8
-)
-plt.title("Cluster Parent-Child Relationships")
-plt.savefig('cluster_hierarchy.png', bbox_inches='tight')
-
-import seaborn as sns
-
-fi = pd.DataFrame({
-    'Feature': adata.uns['model_features'],
-    'Importance': adata.uns['rf_model'].feature_importances_
-}).sort_values('Importance', ascending=False).head(15)
-
-plt.figure(figsize=(10,6))
-sns.barplot(x='Importance', y='Feature', data=fi, palette='viridis')
-plt.title("Top 15 Predictive Features")
-plt.xlabel("Feature Importance Score")
-plt.ylabel("")
-plt.savefig('feature_importance.png', bbox_inches='tight')
