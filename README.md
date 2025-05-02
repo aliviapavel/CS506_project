@@ -14,21 +14,11 @@ pip install -r requirements.txt
 pip install -e .
 ```
 ## Quick Start
-```
-from adipocyte_classifier import models, preprocessing, visualization
+10X Genomics data is in in `geo_data/extracted/` directory.
+Models in `models/human/` and `models/mouse/` directories.
 
-# Load and preprocess data
-adata = preprocessing.load_10x_data("path/to/10x/data", species="mouse")
-adata = preprocessing.preprocess_data(adata)
-
-# Classify cells
-adata = models.predict(adata, species="mouse")
-
-# Visualize results
-visualization.plot_umap(adata, save_path="figures/umap_plot.png")
-visualization.plot_markers(adata, save_path="figures/marker_expression.png")
-visualization.plot_predictions(adata, save_path="figures/predictions.png")
-```
+Run the model evaluation: `python test_models.py`
+Results will appear in the `results/` directory.
 ## Usage Examples
 **Processing 10X Data**
 ```
