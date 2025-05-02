@@ -80,14 +80,13 @@ For the past year, I have worked under Dr. Nabil Rabhi in the Biochemistry Depar
 This annotator is able to take an input data set, cluster at various resolutions [see Heirarchical Annotation subheading], identify most likely cell type by cluster based on existing knowledge of cell markers, and identify potential new cell types or pathways. This model is written, and intended to be used in Python, although there is potential for cross-platform use.
 #### Single-Cell Annotation Process - For Those Who are Unfamiliar
 For those unfamiliar with the single-cell annotation process, for each cluster the top N markers are looked at (usually N is around 5, but can vary depending on the context and case); there is no unanimous cell marker database, rather cell markers come from the compilation of markers identified in existing studies and publications. The current most comprehensive database is CellMarker 2.0[https://academic.oup.com/nar/article/51/D1/D870/6775381]. The top N markers are then compared to existing known markers in an attempt to identify the cell type. Often these markers will not match exactly, and often only a fraction of the known markers may be present in a cluster. These unrecognized markers, markers that are among the top N expressed but have not been identified in previous publications, may be indicative of either new cell (sub)types or new pathways. Cell pathways are a series of actions among molecules in a cell that leads to a certain product or a change in the cell (National Human Genome Research Institute, NHGRI). Essentially, unknown markers may be indicative of this change of cell state.
-#### Heirarchical Annotation
-As cells can have different levels of classification (e.g. Adipocytes, white/brown/beige adipocyte, pre-adipocyte, etc.) heirarchical annotation lends itself to the process of understanding how individual cells change and interact with a larger group. While heirarchical annotatin may initially seem complex, it is little more than annotating the dataset at different resolutions and identifying which clusters at a lower resolution give way to more specific and refined clusters at higher resolution. This part of my package would simply utilize the trained model to predict the most likely markers at each relevant resolution. I would also like to implement some method to help identify which resolutions are key resolutions, but heirarchical annotion is absouletly possible without this step.
+#### Potential Future Expansion: Heirarchical Annotation
+As cells can have different levels of classification (e.g. Adipocytes, white/brown/beige adipocyte, pre-adipocyte, etc.) heirarchical annotation lends itself to the process of understanding how individual cells change and interact with a larger group. While heirarchical annotatin may initially seem complex, it is little more than annotating the dataset at different resolutions and identifying which clusters at a lower resolution give way to more specific and refined clusters at higher resolution. Future implementations fo the package could utilize the trained model to predict the most likely markers at each relevant resolution.
 #### Identification of Unknown/New cell types and pathways
 As alluded to in the previous description, I aim to train a model which can aid in identifying unknown or new cell types and pathways. I propose this be done by utilizing the confidence of each prediction. When predicting the cell type of a cluster from known markers, the model would report how closely a cluster fits to known cell-type markers (how many known markers are present, their rank of expression in top N markers, proportion of cells expressing known markers, etc.). I see this identification being most prominent with the heirarchical annotation. Take for example a dataset where, at a low resolution, a known cell-type cluster splits into several smaller clusters at a higher resolution. I plan to implement this model to display the most likely cell type(s) for each sub-cluster. I am not certain on the exact method I would use to compute and predict the likelihood of each cell type, but that is to be explored and refined in this class. 
 ## **Current State**
 **Key Technical Features**:
 - Dual-species support (Mouse/Human)
-- Multi-resolution Leiden clustering (0.2, 0.6, 1.0)
 - Random Forest classifier with marker-based features
 - Confidence scoring for predictions
 
@@ -119,7 +118,6 @@ graph TD
     B -->|H5| D[AnnData Converter]
     C --> E[Preprocessing]
     D --> E
-    E --> F[Multi-Resolution Clustering]
-    F --> G[Marker-Based Annotation]
-    G --> H[Confidence Scoring]
-    H --> I[Visualization Suite]
+    E --> F[Marker-Based Annotation]
+    F --> G[Confidence Scoring]
+    G --> H[Visualization Suite]
