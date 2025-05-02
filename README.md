@@ -1,8 +1,85 @@
 # **Automated Adipocyte Cell Identifier and Annotator** #
+A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
 [https://youtu.be/jer6YBh_jN4]
+## Installation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/adipocyte-classifier.git
+cd adipocyte-classifier
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the package in development mode
+pip install -e .
+
 ## Quick Start
-1. Install requirements: `pip install -r requirements.txt`
-2. Run demo notebook: `examples/demo.ipynb`
+from adipocyte_classifier import models, preprocessing, visualization
+
+# Load and preprocess data
+adata = preprocessing.load_10x_data("path/to/10x/data", species="mouse")
+adata = preprocessing.preprocess_data(adata)
+
+# Classify cells
+adata = models.predict(adata, species="mouse")
+
+# Visualize results
+visualization.plot_umap(adata, save_path="figures/umap_plot.png")
+visualization.plot_markers(adata, save_path="figures/marker_expression.png")
+visualization.plot_predictions(adata, save_path="figures/predictions.png")
+
+## Usage Examples
+**Processing 10X Data**
+import scanpy as sc
+from adipocyte_classifier import preprocessing
+
+# Load 10X data
+adata = preprocessing.load_10x_data("path/to/10x/data", species="mouse")
+
+# Basic preprocessing
+adata = preprocessing.preprocess_data(adata)
+
+# Save processed data
+adata.write("processed_data.h5ad")
+
+**Clasifying Cells**
+from adipocyte_classifier import models
+
+# Load processed data
+adata = sc.read("processed_data.h5ad")
+
+# Predict cell types
+adata = models.predict(adata, species="mouse")
+
+# Save results
+adata.write("predictions.h5ad")
+
+**Visualization**
+from adipocyte_classifier import visualization
+
+# Load predicted data
+adata = sc.read("predictions.h5ad")
+
+# Create UMAP plot
+visualization.plot_umap(adata, color="predicted_cell_type", 
+                       save_path="umap_plot.png")
+
+# Plot marker gene expression
+visualization.plot_markers(adata, markers=["Ucp1", "Pparg", "Adipoq"],
+                          save_path="marker_expression.png")
+
+# Create summary statistics
+visualization.plot_cell_type_distribution(adata, save_path="cell_types.png")
+
+## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+-Fork the repository
+-Create your feature branch (git checkout -b feature/amazing-feature)
+-Commit your changes (git commit -m 'Add some amazing feature')
+-Push to the branch (git push origin feature/amazing-feature)
+-Open a Pull Request
+
 ## **Description**
 For the past year, I have worked under Dr. Nabil Rabhi in the Biochemistry Department over at the BU Medical Campus. There I have learned the basics of the single-cell RNA sequencing pipeline, doing quality control, annotation, and now analysis. Through this process I found there are several rather tedious steps in the process that have the potential to be automated with specialized packages and models. There exist several annotation packages in which you can train the model with self-provided data sets. However, very few packages exist that are pre-trained. My proposed package would be one such pre-trained model, specialized on adipose tissue. This model would then be able to be used in my, as well as others, analysis of adipose tissue, allowing for an ease of identification and annotation of sequenced data.
 #### Cell Type Annotator
