@@ -1,0 +1,108 @@
+{
+  "white_adipocyte": [
+    "Lep",
+    "Adipoq",
+    "Retn",
+    "Lpl",
+    "Fabp4",
+    "Plin1",
+    "Pparg",
+    "Cd36"
+  ],
+  "beige_adipocyte": [
+    "Tmem26",
+    "Tbx1",
+    "Cd137",
+    "Slc27a1",
+    "Pat2",
+    "Cited1",
+    "Ear2",
+    "Ppargc1a"
+  ],
+  "brown_adipocyte": [
+    "Ucp1",
+    "Cidea",
+    "Prdm16",
+    "Ppargc1a",
+    "Dio2",
+    "Cox8b",
+    "Elovl3",
+    "Adrb3",
+    "Asc1",
+    "Pgc1a"
+  ],
+  "macrophages": [
+    "Adgre1",
+    "Cd68",
+    "Itgam",
+    "Mrc1",
+    "Cd14",
+    "Fcgr1",
+    "Csf1r",
+    "Aif1"
+  ],
+  "immune_cells": [
+    "Ptprc",
+    "Cd3e",
+    "Cd4",
+    "Cd8a",
+    "Il6",
+    "Tnf",
+    "Il1b",
+    "Ifng"
+  ],
+  "fibroblasts": [
+    "Col1a1",
+    "Col3a1",
+    "Dcn",
+    "Pdgfra",
+    "Vim",
+    "Fbn1",
+    "Acta2",
+    "S100a4"
+  ],
+  "vascular_cells": [
+    "Pecam1",
+    "Cdh5",
+    "Vwf",
+    "Flt1",
+    "Kdr",
+    "Tie1",
+    "Nos3",
+    "Icam1"
+  ],
+  "innate_T_cells": [
+    "Il17a",
+    "Rorc",
+    "Il22",
+    "Stat3",
+    "Ccr6",
+    "Il23r",
+    "Il7r",
+    "Cd3e"
+  ],
+  "stromal_cells": [
+    "Pdgfra",
+    "Cd34",
+    "Ly6a",
+    "Cd29",
+    "Cd44",
+    "Cd140a",
+    "Sca1",
+    "Thy1",
+    "Bmper",
+    "Dpp4",
+    "Cd55",
+    "Cd142"
+  ],
+  "adipose_progenitors": [
+    "Bmper",
+    "Pdgfra",
+    "Cd34",
+    "Ly6a",
+    "Cd29",
+    "Dpp4",
+    "Cd55",
+    "Cd142"
+  ]
+}

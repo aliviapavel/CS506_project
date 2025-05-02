@@ -1,0 +1,95 @@
+{
+  "white_adipocyte": [
+    "LEP",
+    "ADIPOQ",
+    "RETN",
+    "LPL",
+    "FABP4",
+    "PLIN1",
+    "PPARG",
+    "CD36"
+  ],
+  "beige_adipocyte": [
+    "TMEM26",
+    "TBX1",
+    "CD137",
+    "SLC27A1",
+    "PAT2",
+    "CITED1",
+    "EAR2",
+    "PPARGC1A"
+  ],
+  "brown_adipocyte": [
+    "UCP1",
+    "CIDEA",
+    "PRDM16",
+    "PPARGC1A",
+    "DIO2",
+    "COX8B",
+    "ELOVL3",
+    "PGC1A"
+  ],
+  "fibroblasts": [
+    "COL1A1",
+    "COL3A1",
+    "DCN",
+    "PDGFRA",
+    "VIM",
+    "FBN1",
+    "ACTA2",
+    "S100A4"
+  ],
+  "immune_cells": [
+    "PTPRC",
+    "CD3E",
+    "CD4",
+    "CD8A",
+    "IL6",
+    "TNF",
+    "IL1B",
+    "IFNG"
+  ],
+  "endothelial_cells": [
+    "PECAM1",
+    "CDH5",
+    "VWF",
+    "FLT1",
+    "KDR",
+    "TIE1",
+    "NOS3",
+    "ICAM1"
+  ],
+  "vascular_smooth_muscle": [
+    "ACTA2",
+    "TAGLN",
+    "MYH11",
+    "CNN1",
+    "CALD1",
+    "DES",
+    "MYOCD",
+    "SMTN"
+  ],
+  "preadipocytes": [
+    "PDGFRA",
+    "CD34",
+    "THY1",
+    "DPP4",
+    "CD29",
+    "CD44",
+    "CD140A",
+    "CD90",
+    "BMPER",
+    "CD55",
+    "CD142"
+  ],
+  "adipose_progenitors": [
+    "BMPER",
+    "PDGFRA",
+    "CD34",
+    "CD55",
+    "DPP4",
+    "CD142",
+    "CD29",
+    "THY1"
+  ]
+}

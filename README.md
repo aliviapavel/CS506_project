@@ -1,6 +1,6 @@
 # **Automated Adipocyte Cell Identifier and Annotator** #
 A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
-[https://youtu.be/jer6YBh_jN4]
+[https://youtu.be/Z2oN9tKxrFg]
 ## Testing
 ```
 pip install -r requirements.txt
