@@ -1,7 +1,10 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import pytest
 import scanpy as sc
 import anndata
-import os
 import numpy as np
 from adipocyte_annotator.script import (
     manual_kmeans_clustering,
@@ -11,7 +14,6 @@ from adipocyte_annotator.script import (
     HUMAN_CELL_MARKERS
 )
 
-# Get list of all test files
 TEST_DATA_DIR = os.path.join("tests", "data")
 TEST_FILES = [f for f in os.listdir(TEST_DATA_DIR) if f.endswith(".h5ad")]
 
@@ -81,10 +83,10 @@ def test_prediction(test_file):
     
     # Determine species from filename
     if "EWAT" in test_file or "iWAT" in test_file:
-        model_path = "/workspaces/CS506_project/models/mouse/adipocyte_annotator_mouse_model.joblib"
+        model_path = "models/mouse/adipocyte_annotator_mouse_model.joblib"
         species = "mouse"
     else:
-        model_path = "/workspaces/CS506_project/models/human/adipocyte_annotator_human_model.joblib"
+        model_path = "models/human/adipocyte_annotator_human_model.joblib"
         species = "human"
     
     if os.path.exists(model_path):
