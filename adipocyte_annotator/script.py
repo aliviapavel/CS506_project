@@ -477,28 +477,26 @@ def manual_tsne(adata, n_components=2, perplexity=30):
     return adata
 
 def manual_kmeans_clustering(adata, n_clusters=20, key_added='kmeans'):
-    """
-    Perform clustering using KMeans
-    """
+    """Perform K-means clustering on PCA coordinates"""
     logger.info(f"Running KMeans clustering with {n_clusters} clusters")
     
-    # Use PCA coordinates
+    # Ensure PCA is calculated
     if 'X_pca' not in adata.obsm:
-        logger.error("PCA not found in adata.obsm")
-        return adata
+        logger.info("Calculating PCA for clustering")
+        manual_pca(adata)
     
-    # Get PCA space
-    X_pca = adata.obsm['X_pca']
+    # Verify PCA shape matches cell count
+    if adata.obsm['X_pca'].shape[0] != adata.n_obs:
+        raise ValueError("PCA dimensions don't match cell count")
     
-    # Run KMeans
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-    labels = kmeans.fit_predict(X_pca)
+    # Run KMeans with validation
+    kmeans = KMeans(n_clusters=min(n_clusters, adata.n_obs-1), 
+              random_state=42, n_init=10)
+    labels = kmeans.fit_predict(adata.obsm['X_pca'])
     
-    # Store in AnnData
+    # Add cluster labels
     adata.obs[key_added] = labels.astype(str)
     adata.obs[key_added] = adata.obs[key_added].astype('category')
-    
-    logger.info(f"KMeans clustering complete: {n_clusters} clusters")
     
     return adata
 
@@ -1233,84 +1231,50 @@ def plot_annotation_consistency(adata, output_dir):
 # ---------------------------
 # ORIGINAL MODEL FUNCTIONS WITH ENHANCEMENTS
 # ---------------------------
-def prepare_features_for_training(adata, cell_markers, species='mouse'):
-    """
-    Prepare features for training the random forest model from annotated data
-    """
-    logger.info(f"Preparing features for training {species} model")
-    
-    # Extract features for each cell
+def prepare_features_for_training(adata, marker_dict, species='mouse'):
+    """Create feature matrix for model training/prediction"""
     features = []
-    labels = []
     
-    # For each cell, extract features
-    for cell_idx in range(adata.shape[0]):
-        # Get cell expression profile - handle both sparse and dense matrices
-        if hasattr(adata.X, 'toarray'):
-            cell_expr = adata.X[cell_idx].toarray()[0]
+    for cell_idx in range(adata.n_obs):
+        # Get expression profile
+        if sparse.issparse(adata.X):
+            cell_expr = adata.X[cell_idx].toarray().flatten()
         else:
             cell_expr = adata.X[cell_idx]
-        
-        # Create feature dictionary
+            
         feature_dict = {}
         
-        # Get mean expression of marker genes for each cell type
-        for ct, markers in cell_markers.items():
-            # Find markers that are in our dataset
-            markers_in_data = [m for m in markers if m in adata.var_names]
+        # Add cluster feature first
+        try:
+            feature_dict['kmeans_cluster'] = int(adata.obs['kmeans'].iloc[cell_idx])
+        except KeyError:
+            raise RuntimeError("Run clustering before prediction")
+        
+        # Process markers
+        for ct, markers in marker_dict.items():
+            valid_markers = [m for m in markers if m in adata.var_names]
             
-            if markers_in_data:
-                # Get expression values for the markers
-                marker_expr = []
-                for marker in markers_in_data:
-                    try:
-                        marker_idx = adata.var_names.get_loc(marker)
-                        marker_expr.append(cell_expr[marker_idx])
-                    except:
-                        # Skip if marker can't be found
-                        continue
+            if valid_markers:
+                # Ensure we get scalar values
+                expr_values = cell_expr[adata.var_names.isin(valid_markers)]
+                if isinstance(expr_values, np.ndarray):
+                    expr_values = expr_values.flatten()
                 
-                if marker_expr:
-                    # Calculate features
-                    feature_dict[f"{ct}_mean_expr"] = np.mean(marker_expr)
-                    feature_dict[f"{ct}_max_expr"] = np.max(marker_expr)
-                    feature_dict[f"{ct}_expr_ratio"] = np.sum(np.array(marker_expr) > 0) / len(markers_in_data)
-                else:
-                    feature_dict[f"{ct}_mean_expr"] = 0
-                    feature_dict[f"{ct}_max_expr"] = 0
-                    feature_dict[f"{ct}_expr_ratio"] = 0
+                feature_dict.update({
+                    f"{ct}_mean_expr": float(np.nanmean(expr_values)),
+                    f"{ct}_max_expr": float(np.nanmax(expr_values)),
+                    f"{ct}_expr_ratio": float(np.mean(expr_values > 0))
+                })
             else:
-                feature_dict[f"{ct}_mean_expr"] = 0
-                feature_dict[f"{ct}_max_expr"] = 0
-                feature_dict[f"{ct}_expr_ratio"] = 0
+                feature_dict.update({
+                    f"{ct}_mean_expr": 0.0,
+                    f"{ct}_max_expr": 0.0,
+                    f"{ct}_expr_ratio": 0.0
+                })
         
-        # Add some general features
-        if 'n_genes' in adata.obs:
-            feature_dict['n_genes'] = adata.obs['n_genes'][cell_idx]
-        
-        if 'n_counts' in adata.obs:
-            feature_dict['total_counts'] = adata.obs['n_counts'][cell_idx]
-        elif 'total_counts' in adata.obs:
-            feature_dict['total_counts'] = adata.obs['total_counts'][cell_idx]
-        else:
-            feature_dict['total_counts'] = np.sum(cell_expr)
-        
-        # Add cluster feature
-        feature_dict['kmeans_cluster'] = int(adata.obs['kmeans'][cell_idx])
-        
-        # Get label (true cell type)
-        cell_type = adata.obs['cell_type'][cell_idx]
-        
-        # Add to lists
         features.append(feature_dict)
-        labels.append(cell_type)
     
-    # Convert to DataFrame
-    feature_df = pd.DataFrame(features)
-    
-    logger.info(f"Prepared {len(feature_df)} {species} cells with {len(feature_df.columns)} features")
-    
-    return feature_df, np.array(labels)
+    return pd.DataFrame(features), adata.obs['cell_type']
 
 def train_random_forest_model(features, labels, species='mouse', output_dir='models'):
     """Train a Random Forest model with confusion matrix generation"""

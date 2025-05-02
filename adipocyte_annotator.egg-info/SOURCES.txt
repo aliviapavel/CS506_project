@@ -1,6 +1,8 @@
 README.md
 pyproject.toml
 setup.py
+adipocyte_annotator/__init__.py
+adipocyte_annotator/script.py
 adipocyte_annotator.egg-info/PKG-INFO
 adipocyte_annotator.egg-info/SOURCES.txt
 adipocyte_annotator.egg-info/dependency_links.txt

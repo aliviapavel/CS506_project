@@ -2,6 +2,7 @@
 A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
 [https://youtu.be/Z2oN9tKxrFg]
 ## Testing
+clone this repo, then you can run this from the main directory:
 ```
 pip install pytest
 pip install -r requirements.txt
