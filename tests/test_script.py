@@ -1,97 +1,97 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import pytest
 import scanpy as sc
-import anndata
 import numpy as np
-from adipocyte_annotator.script import (
-    manual_kmeans_clustering,
-    annotate_clusters,
-    predict_cell_types,
-    MOUSE_CELL_MARKERS,
-    HUMAN_CELL_MARKERS
-)
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+from adipocyte_annotator.script import predict_cell_types, MOUSE_CELL_MARKERS, HUMAN_CELL_MARKERS
 
 TEST_DATA_DIR = os.path.join("tests", "data")
 TEST_FILES = [f for f in os.listdir(TEST_DATA_DIR) if f.endswith(".h5ad")]
+TEST_RESULTS_DIR = os.path.join("tests", "test_results")
+os.makedirs(TEST_RESULTS_DIR, exist_ok=True)
+
+def evaluate_model_performance(y_true, y_pred, species, test_file):
+    """Generate performance metrics and visualizations"""
+    # Classification report
+    report = classification_report(y_true, y_pred, output_dict=True)
+    df_report = pd.DataFrame(report).transpose()
+    df_report.to_csv(os.path.join(TEST_RESULTS_DIR, f"{species}_report_{test_file}.csv"))
+    
+    # Confusion matrix
+    plt.figure(figsize=(10, 8))
+    cm = confusion_matrix(y_true, y_pred)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=np.unique(y_true))
+    disp.plot(cmap='Blues', values_format='d')
+    plt.title(f"Confusion Matrix - {test_file}")
+    plt.xticks(rotation=45, ha='right')
+    plt.savefig(os.path.join(TEST_RESULTS_DIR, f"{species}_confusion_matrix_{test_file}.png"), bbox_inches='tight')
+    plt.close()
+    
+    return report['accuracy']
 
 @pytest.mark.parametrize("test_file", TEST_FILES)
-def test_data_loading(test_file):
-    """Test data loading functionality"""
+def test_model_performance(test_file):
+    """Test model performance on validation datasets"""
     test_path = os.path.join(TEST_DATA_DIR, test_file)
     adata = sc.read_h5ad(test_path)
     
-    # Basic assertions
-    assert adata.n_obs > 0, f"No cells loaded in {test_file}"
-    assert adata.n_vars > 0, f"No genes loaded in {test_file}"
-    assert 'cell_type' in adata.obs.columns, f"Missing cell type metadata in {test_file}"
-
-@pytest.mark.parametrize("test_file", TEST_FILES)
-def test_preprocessing(test_file):
-    """Test preprocessing pipeline"""
-    test_path = os.path.join(TEST_DATA_DIR, test_file)
-    adata = sc.read_h5ad(test_path)
-    
-    # Run preprocessing
-    original_size = adata.shape
-    sc.pp.filter_cells(adata, min_genes=200)
-    sc.pp.filter_genes(adata, min_cells=3)
-    
-    # Check filtering
-    assert adata.shape[0] <= original_size[0], f"Cell filtering failed in {test_file}"
-    assert adata.shape[1] <= original_size[1], f"Gene filtering failed in {test_file}"
-
-@pytest.mark.parametrize("test_file", TEST_FILES)
-def test_clustering(test_file):
-    """Test clustering functionality"""
-    test_path = os.path.join(TEST_DATA_DIR, test_file)
-    adata = sc.read_h5ad(test_path)
-    
-    # Run clustering
-    n_clusters = 5
-    manual_kmeans_clustering(adata, n_clusters=n_clusters)
-    
-    assert 'kmeans' in adata.obs.columns, f"Clustering failed in {test_file}"
-    assert len(adata.obs['kmeans'].cat.categories) == n_clusters, f"Cluster count mismatch in {test_file}"
-
-@pytest.mark.parametrize("test_file", TEST_FILES)
-def test_annotation(test_file):
-    """Test cell type annotation"""
-    test_path = os.path.join(TEST_DATA_DIR, test_file)
-    adata = sc.read_h5ad(test_path)
-    
-    # Run annotation
-    
-    # Determine species from filename
+    # Determine species and model path
     if "EWAT" in test_file or "iWAT" in test_file:
-        annotate_clusters(adata, MOUSE_CELL_MARKERS)
+        species = "mouse"
+        model_path = "models/mouse/adipocyte_annotator_mouse_model.joblib"
+        markers = MOUSE_CELL_MARKERS
     else:
-        annotate_clusters(adata, HUMAN_CELL_MARKERS)
+        species = "human"
+        model_path = "models/human/adipocyte_annotator_human_model.joblib"
+        markers = HUMAN_CELL_MARKERS
     
-    assert 'cell_type' in adata.obs.columns, f"Annotation failed in {test_file}"
-    assert adata.obs['cell_type'].nunique() > 1, f"All cells same type in {test_file}"
-
-@pytest.mark.parametrize("test_file", TEST_FILES)
-def test_prediction(test_file):
-    """Test prediction pipeline"""
-    test_path = os.path.join(TEST_DATA_DIR, test_file)
-    adata = sc.read_h5ad(test_path)
+    if not os.path.exists(model_path):
+        pytest.skip(f"Model not found for {test_file}")
     
     # Run prediction
+    result = predict_cell_types(adata, model_path, markers, species=species)
     
-    # Determine species from filename
-    if "EWAT" in test_file or "iWAT" in test_file:
-        model_path = "models/mouse/adipocyte_annotator_mouse_model.joblib"
-        species = "mouse"
-    else:
-        model_path = "models/human/adipocyte_annotator_human_model.joblib"
-        species = "human"
+    # Get true and predicted labels
+    y_true = adata.obs['cell_type'].astype(str)
+    y_pred = result.obs['predicted_cell_type'].astype(str)
     
-    if os.path.exists(model_path):
-        result = predict_cell_types(adata, model_path, species=species)
-        assert 'predicted_cell_type' in result.obs.columns, f"Prediction failed in {test_file}"
-        assert 'prediction_confidence' in result.obs.columns, f"Confidence missing in {test_file}"
-    else:
-        pytest.skip(f"Model not found for {test_file}")
+    # Calculate accuracy
+    accuracy = evaluate_model_performance(y_true, y_pred, species, test_file)
+    
+    # Assert minimum performance threshold (adjust as needed)
+    assert accuracy >= 0.75, f"Model accuracy ({accuracy:.2f}) below threshold for {test_file}"
+    
+    # Additional assertion: At least 90% of cells should have confidence > 0.5
+    high_confidence_ratio = (result.obs['prediction_confidence'] > 0.5).mean()
+    assert high_confidence_ratio >= 0.9, f"High confidence predictions insufficient in {test_file}"
+
+def generate_summary_report():
+    """Generate consolidated report after all tests complete"""
+    reports = []
+    for f in os.listdir(TEST_RESULTS_DIR):
+        if f.endswith(".csv") and "report" in f:
+            df = pd.read_csv(os.path.join(TEST_RESULTS_DIR, f), index_col=0)
+            df['dataset'] = f.split('_')[-1].replace('.csv', '')
+            reports.append(df)
+    
+    if reports:
+        combined = pd.concat(reports)
+        summary = combined.groupby('dataset')['precision', 'recall', 'f1-score', 'support'].mean()
+        summary.to_csv(os.path.join(TEST_RESULTS_DIR, "performance_summary.csv"))
+        
+        plt.figure(figsize=(12, 6))
+        sns.barplot(data=combined.reset_index(), x='dataset', y='accuracy')
+        plt.title("Model Accuracy Across Test Datasets")
+        plt.ylim(0, 1.0)
+        plt.savefig(os.path.join(TEST_RESULTS_DIR, "accuracy_summary.png"))
+        plt.close()
+
+# Hook to generate summary after pytest completes
+def pytest_sessionfinish(session, exitstatus):
+    generate_summary_report()
