@@ -2,7 +2,7 @@
 A machine learning toolkit for classifying adipocyte subtypes from single-cell RNA sequencing data.
 [https://youtu.be/jer6YBh_jN4]
 ## Installation
-
+```
 # Clone the repository
 git clone https://github.com/yourusername/adipocyte-classifier.git
 cd adipocyte-classifier
@@ -12,8 +12,9 @@ pip install -r requirements.txt
 
 # Install the package in development mode
 pip install -e .
-
+```
 ## Quick Start
+```
 from adipocyte_classifier import models, preprocessing, visualization
 
 # Load and preprocess data
@@ -27,9 +28,10 @@ adata = models.predict(adata, species="mouse")
 visualization.plot_umap(adata, save_path="figures/umap_plot.png")
 visualization.plot_markers(adata, save_path="figures/marker_expression.png")
 visualization.plot_predictions(adata, save_path="figures/predictions.png")
-
+```
 ## Usage Examples
 **Processing 10X Data**
+```
 import scanpy as sc
 from adipocyte_classifier import preprocessing
 
@@ -41,8 +43,9 @@ adata = preprocessing.preprocess_data(adata)
 
 # Save processed data
 adata.write("processed_data.h5ad")
-
+```
 **Clasifying Cells**
+```
 from adipocyte_classifier import models
 
 # Load processed data
@@ -53,8 +56,9 @@ adata = models.predict(adata, species="mouse")
 
 # Save results
 adata.write("predictions.h5ad")
-
+```
 **Visualization**
+```
 from adipocyte_classifier import visualization
 
 # Load predicted data
@@ -70,7 +74,7 @@ visualization.plot_markers(adata, markers=["Ucp1", "Pparg", "Adipoq"],
 
 # Create summary statistics
 visualization.plot_cell_type_distribution(adata, save_path="cell_types.png")
-
+```
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
