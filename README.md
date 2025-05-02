@@ -9,7 +9,7 @@ pip install -r requirements.txt
 pytest tests/test_script.py -v -p no:warnings --disable-warnings
 ls -lh tests/test_results/*.png
 ```
-Then, look in the figures folder. The mouse model performs much better as it is more robust than the human one with available samples.
+Then, look in the figures folder. The mouse model performs much better as it is more robust than the human one with available samples. The mouse model was my primary focus, as it has the most applicability and available data.
 ## Usage Examples
 **Processing 10X Data**
 ```
