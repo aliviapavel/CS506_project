@@ -3,6 +3,13 @@ import scanpy as sc
 import anndata
 import os
 import numpy as np
+from adipocyte_annotator.script import (
+    manual_kmeans_clustering,
+    annotate_clusters,
+    predict_cell_types,
+    MOUSE_CELL_MARKERS,
+    HUMAN_CELL_MARKERS
+)
 
 # Get list of all test files
 TEST_DATA_DIR = os.path.join("tests", "data")
@@ -42,7 +49,6 @@ def test_clustering(test_file):
     
     # Run clustering
     n_clusters = 5
-    from script import manual_kmeans_clustering
     manual_kmeans_clustering(adata, n_clusters=n_clusters)
     
     assert 'kmeans' in adata.obs.columns, f"Clustering failed in {test_file}"
@@ -55,7 +61,6 @@ def test_annotation(test_file):
     adata = sc.read_h5ad(test_path)
     
     # Run annotation
-    from script import annotate_clusters, MOUSE_CELL_MARKERS, HUMAN_CELL_MARKERS
     
     # Determine species from filename
     if "EWAT" in test_file or "iWAT" in test_file:
@@ -73,7 +78,6 @@ def test_prediction(test_file):
     adata = sc.read_h5ad(test_path)
     
     # Run prediction
-    from script import predict_cell_types
     
     # Determine species from filename
     if "EWAT" in test_file or "iWAT" in test_file:
