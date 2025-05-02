@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from adipocyte_annotator.script import predict_cell_types, MOUSE_CELL_MARKERS, HUMAN_CELL_MARKERS
 
 TEST_DATA_DIR = os.path.join("tests", "data")
@@ -53,9 +53,18 @@ def test_model_performance(test_file):
     
     if not os.path.exists(model_path):
         pytest.skip(f"Model not found for {test_file}")
-    
+
+    # NEW: Run required preprocessing and clustering
+    sc.pp.filter_cells(adata, min_genes=200)
+    sc.pp.filter_genes(adata, min_cells=3)
+    sc.pp.normalize_total(adata, target_sum=1e4)
+    sc.pp.log1p(adata)
+    manual_kmeans_clustering(adata, n_clusters=15)  # Adjust cluster count as needed
+
     # Run prediction
     result = predict_cell_types(adata, model_path, markers, species=species)
+    
+    # Rest of your test assertions...
     
     # Get true and predicted labels
     y_true = adata.obs['cell_type'].astype(str)
