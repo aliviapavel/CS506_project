@@ -7,9 +7,26 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.tree._classes import DecisionTreeClassifier
+from scipy.sparse import issparse
+
+# Monkey patch for sklearn version mismatch
+def monkeypatch_tree():
+    """Workaround for scikit-learn version mismatch"""
+    def _support_missing_values(self, X):
+        return not issparse(X) and self._get_tags()["allow_nan"]
+    
+    DecisionTreeClassifier._support_missing_values = _support_missing_values
+
+monkeypatch_tree()
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from adipocyte_annotator.script import predict_cell_types, MOUSE_CELL_MARKERS, HUMAN_CELL_MARKERS
+from adipocyte_annotator.script import (
+    manual_kmeans_clustering,
+    predict_cell_types,
+    MOUSE_CELL_MARKERS,
+    HUMAN_CELL_MARKERS
+)
 
 TEST_DATA_DIR = os.path.join("tests", "data")
 TEST_FILES = [f for f in os.listdir(TEST_DATA_DIR) if f.endswith(".h5ad")]
@@ -40,6 +57,7 @@ def test_model_performance(test_file):
     """Test model performance on validation datasets"""
     test_path = os.path.join(TEST_DATA_DIR, test_file)
     adata = sc.read_h5ad(test_path)
+    adata.var_names_make_unique()
     
     # Determine species and model path
     if "EWAT" in test_file or "iWAT" in test_file:
@@ -54,31 +72,26 @@ def test_model_performance(test_file):
     if not os.path.exists(model_path):
         pytest.skip(f"Model not found for {test_file}")
 
-    # NEW: Run required preprocessing and clustering
+    # Preprocessing
     sc.pp.filter_cells(adata, min_genes=200)
     sc.pp.filter_genes(adata, min_cells=3)
     sc.pp.normalize_total(adata, target_sum=1e4)
     sc.pp.log1p(adata)
-    manual_kmeans_clustering(adata, n_clusters=15)  # Adjust cluster count as needed
-
-    # Run prediction
+    
+    # Clustering
+    manual_kmeans_clustering(adata, n_clusters=15)
+    
+    # Prediction
     result = predict_cell_types(adata, model_path, markers, species=species)
     
-    # Rest of your test assertions...
-    
-    # Get true and predicted labels
+    # Assertions
     y_true = adata.obs['cell_type'].astype(str)
     y_pred = result.obs['predicted_cell_type'].astype(str)
-    
-    # Calculate accuracy
     accuracy = evaluate_model_performance(y_true, y_pred, species, test_file)
     
-    # Assert minimum performance threshold (adjust as needed)
-    assert accuracy >= 0.75, f"Model accuracy ({accuracy:.2f}) below threshold for {test_file}"
-    
-    # Additional assertion: At least 90% of cells should have confidence > 0.5
-    high_confidence_ratio = (result.obs['prediction_confidence'] > 0.5).mean()
-    assert high_confidence_ratio >= 0.9, f"High confidence predictions insufficient in {test_file}"
+    assert accuracy >= 0.75, f"Model accuracy ({accuracy:.2f}) below threshold"
+    high_conf = (result.obs['prediction_confidence'] > 0.5).mean()
+    assert high_conf >= 0.9, f"High confidence ratio ({high_conf:.2f}) too low"
 
 def generate_summary_report():
     """Generate consolidated report after all tests complete"""

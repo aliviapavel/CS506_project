@@ -2095,8 +2095,9 @@ def visualize_model(species):
             
             # Create plot with category colors
             plt.subplot(1, 1, 1)
-            bars = sns.barplot(x='Importance', y='Feature', data=top_features, palette='viridis')
-            
+
+            sns.barplot(x='Importance', y='Feature', data=top_features, hue='Feature', palette='viridis', legend=False)    
+
             # Color code features by category
             cell_type_colors = {}
             for i, feature in enumerate(top_features['Feature']):
@@ -2137,7 +2138,8 @@ def visualize_model(species):
                         'Importance': list(cell_type_importance.values())
                     }).sort_values('Importance', ascending=False)
                     
-                    sns.barplot(x='Importance', y='Cell Type', data=cell_df, palette='viridis')
+                    sns.barplot(x='Importance', y='Cell Type', data=cell_df, hue='Cell Type', palette='viridis', legend=False)
+
                     plt.title(f"{species.capitalize()} Model - Cell Type Feature Importance")
                     plt.tight_layout()
                     plt.savefig(f'figures/{species}_cell_type_importance.png', dpi=300, bbox_inches='tight')
