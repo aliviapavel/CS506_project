@@ -3,8 +3,9 @@ A machine learning toolkit for classifying adipocyte subtypes from single-cell R
 [https://youtu.be/Z2oN9tKxrFg]
 ## Testing
 ```
+pip install pytest
 pip install -r requirements.txt
-pytest tests/
+pytest tests/test_script.py -v
 ```
 ## Usage Examples
 **Processing 10X Data**
